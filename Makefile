@@ -5,7 +5,7 @@
 BINARY_NAME := gin-boilerplate
 DOCKER_IMAGE := make-gin-boilerplate
 DOCKER_CONTAINER := make-gin-boilerplate
-MAIN_FILE := main.go
+MAIN_FILE := cmd/main.go
 LDFLAGS := -ldflags="-s -w"
 
 help: ## Display this help message
