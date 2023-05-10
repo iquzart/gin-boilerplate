@@ -1,0 +1,42 @@
+basePath: /
+host: 127.0.0.1:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: This is a Boilerplate.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://example.com/terms/
+  title: Gin Boilerplate
+  version: v1.0.0
+paths:
+  /api/version:
+    get:
+      description: Returns API Version.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Current API version
+          schema:
+            type: string
+      summary: API Version
+      tags:
+      - App
+  /system/health:
+    get:
+      description: Returns a "Working!" message if the server is healthy.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Working!
+          schema:
+            type: string
+      summary: Check server health
+      tags:
+      - System
+swagger: "2.0"

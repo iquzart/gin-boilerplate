@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help clean build run docker-build docker-run docker-stop
+.PHONY: help clean build run docker-build docker-run docker-stop swag-init
 
 # Define variables
 BINARY_NAME := gin-boilerplate
@@ -25,6 +25,9 @@ build: ## Build the binary file
 
 run: ## Build and run the binary file
 	go run $(LDFLAGS) $(MAIN_FILE)
+
+swag-init: ## run swag init
+	cd cmd; swag init -g main.go;cd ..
 
 docker-build: ## Build Docker image
 	docker build -t $(DOCKER_IMAGE) . -f ./Containerfile

@@ -3,6 +3,8 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // InitRouter initializes the Gin router and sets up the middleware and routes.
@@ -27,6 +29,10 @@ func InitRouter() *gin.Engine {
 func getRoutes(rg *gin.RouterGroup) {
 	// Add the routes for the System.
 	addSystemRoutes(rg)
+
+	// Add the Swagger endpoint for API documentation.
+	rg.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// Add the routes for API controllers.
 	addAPIRoutes(rg)
 }
