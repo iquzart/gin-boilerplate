@@ -1,4 +1,4 @@
-// Package server provides the implementation of the HTTP server.
+// Package server starts and runs the HTTP server for the application.
 package server
 
 import (
@@ -13,27 +13,28 @@ import (
 	"time"
 )
 
-// serverConfigs represents the server configuration options.
+// serverConfigs contains configuration options for the HTTP server.
 type serverConfigs struct {
-	port             string
-	gracefulShutdown bool
+	port             string // The port number on which to start the server.
+	gracefulShutdown bool   // Whether to use graceful shutdown when stopping the server.
 }
 
-// Start initializes the server and starts listening for incoming connections.
+// Run starts the HTTP server.
 func Run() {
-	// Get server configs
+
+	// Get the server configuration options from environment variables.
 	serverConfigs := getConfigs()
 
-	// Initialize the router
+	// Initialize the router with the application's routes.
 	router := routes.InitRouter()
 
-	// Initialize the server
+	// Create an HTTP server with the specified address and router.
 	server := &http.Server{
 		Addr:    serverConfigs.port,
 		Handler: router,
 	}
 
-	// Start the server
+	// Start the server with or without graceful shutdown.
 	if serverConfigs.gracefulShutdown {
 		startWithGracefulShutdown(server)
 	} else {
@@ -41,7 +42,7 @@ func Run() {
 	}
 }
 
-// getConfigs returns the server configs.
+// getConfigs gets the server configuration options from environment variables.
 func getConfigs() *serverConfigs {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -57,7 +58,7 @@ func getConfigs() *serverConfigs {
 	}
 }
 
-// starts the server with out graceful shutdown.
+// start starts the HTTP server without graceful shutdown.
 func start(server *http.Server) {
 	log.Printf("Server started on port %s", server.Addr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -65,22 +66,23 @@ func start(server *http.Server) {
 	}
 }
 
-// starts the server with graceful shutdown.
+// startWithGracefulShutdown starts the HTTP server with graceful shutdown.
 func startWithGracefulShutdown(server *http.Server) {
 	log.Printf("Started the server on port %s with graceful shutdown ", server.Addr)
 
+	// Create a channel to signal when all idle connections are closed.
 	idleConnsClosed := make(chan struct{})
+
+	// Start a goroutine to listen for interrupts and shut down the server gracefully when one is received.
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
 		log.Println("Shutting down server...")
 
-		// Give the server 5 seconds to finish processing active requests
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		// Shut down the server gracefully
 		if err := server.Shutdown(ctx); err != nil {
 			log.Fatalf("Error shutting down server: %s\n", err)
 		}
@@ -88,6 +90,7 @@ func startWithGracefulShutdown(server *http.Server) {
 		close(idleConnsClosed)
 	}()
 
+	// Start the server and wait for it to return.
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Error starting server: %s\n", err)
 	}
