@@ -34,7 +34,6 @@ func Run() {
 	// Create an HTTP server with the specified address and router.
 	server := &http.Server{
 		Addr: serverConfigs.port,
-		//Handler: router,
 	}
 
 	// Enable HTTP/2 support.
@@ -43,11 +42,14 @@ func Run() {
 	// Wrap the router with H2C support.
 	h2cHandler := h2c.NewHandler(router, http2Server)
 
+	// Use H2C handler as the root handler.
+	server.Handler = h2cHandler
+
 	// Start the server with or without graceful shutdown.
 	if serverConfigs.gracefulShutdown {
-		startWithGracefulShutdown(server, h2cHandler)
+		startWithGracefulShutdown(server)
 	} else {
-		start(server, h2cHandler)
+		start(server)
 	}
 }
 
@@ -68,11 +70,8 @@ func getConfigs() *serverConfigs {
 }
 
 // start starts the HTTP server without graceful shutdown.
-func start(server *http.Server, h2cHandler http.Handler) {
+func start(server *http.Server) {
 	log.Printf("Server started on port %s", server.Addr)
-
-	// Use H2C handler as the root handler.
-	server.Handler = h2cHandler
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Error starting server: %s\n", err)
@@ -80,7 +79,7 @@ func start(server *http.Server, h2cHandler http.Handler) {
 }
 
 // startWithGracefulShutdown starts the HTTP server with graceful shutdown.
-func startWithGracefulShutdown(server *http.Server, h2cHandler http.Handler) {
+func startWithGracefulShutdown(server *http.Server) {
 	log.Printf("Started the server on port %s with graceful shutdown ", server.Addr)
 
 	// Create a channel to signal when all idle connections are closed.
@@ -102,9 +101,6 @@ func startWithGracefulShutdown(server *http.Server, h2cHandler http.Handler) {
 
 		close(idleConnsClosed)
 	}()
-
-	// Use H2C handler as the root handler.
-	server.Handler = h2cHandler
 
 	// Start the server and wait for it to return.
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
